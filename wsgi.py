@@ -83,6 +83,16 @@ def add_comp(username, name, numberofchallenges, location):
     db.session.commit()
     print('Competition added')
 
+@app.cli.command('get-participant-competitions')
+@click.argument('username', default='bob')
+def get_participant_competitions(username):
+    participant = get_participant_by_name(username)
+    if not participant:
+        print(f'{username} not found')
+        return
+    print(participant.competitions)
+
+
 @app.cli.command('get-competitions')
 def list_competitions():
     comps = []
@@ -101,6 +111,17 @@ def list_competition_results(competition_id):
     competition = get_competition(competition_id)
     print(f'Results for {competition.name} : ')
     print(tabulate(results, headers=["Rank", "Participant Id", "Challenges Passed", "Score", "Time In Minuites", "Time In Seconds"]))
+
+@app.cli.command('get-participant-results')
+@click.argument('participant_id', default=1)
+def list_participant_results(participant_id):
+    results = []
+    participantRes = get_results_by_participant(participant_id)
+    for result in participantRes:
+        results.append([result.rank, result.competition_id, result.challengesPassed, result.score, result.timeInMin, result.timeInSecs ])
+    print(f'Results for  Participant {participant_id} : ')
+    print(tabulate(results, headers=["Rank", "Competition Id", "Challenges Passed", "Score", "Time In Minuites", "Time In Seconds"]))
+    
 
 @app.cli.command('get-results')
 def list_results():
