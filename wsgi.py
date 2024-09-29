@@ -1,11 +1,12 @@
-import click, pytest, sys
+import click, pytest, sys, csv
+from tabulate import tabulate
 from flask import Flask
 from flask.cli import with_appcontext, AppGroup
 
 from App.database import db, get_migrate
-from App.models import User
+from App.models import User, Participant
 from App.main import create_app
-from App.controllers import ( create_user, get_all_users_json, get_all_users, initialize )
+from App.controllers import ( create_user, get_all_users_json, get_all_users, initialize, create_participant, get_all_participants, get_participant_by_name, create_competition, get_competition, get_all_competitions, get_results_by_competition, get_results_by_participant, get_all_results )
 
 
 # This commands file allow you to create convenient CLI commands for testing controllers
@@ -18,6 +19,97 @@ migrate = get_migrate(app)
 def init():
     initialize()
     print('database intialized')
+
+@app.cli.command("create-participant")
+@click.argument('firstname',default='jack')
+@click.argument('lastname',default='greg')
+@click.argument('username',default='jeg')
+@click.argument('level',default='Beginner')
+def createParticipant(firstname, lastname, username, level):
+    new_participant = create_participant(firstname, lastname, username, level)
+    try:
+        db.session.add(new_participant)
+        db.session.commit()
+    except IntegrityError as e:
+        db.session.rollback()
+        print(e.orig)
+        print("Username already taken!")
+    else:
+        print(new_participant)
+
+@app.cli.command('get-participants')
+def get_participants():
+    participants = get_all_participants()
+    print(participants)
+
+@app.cli.command('get-participant')
+@click.argument('username',default='bob')
+def get_participant(username):
+    participant = get_participant_by_name(username)
+    if not participant:
+        print(f'{username} not found')
+        return
+    print(participant)
+
+@app.cli.command('create-competition')
+@click.argument('name',default='Software-Comp')
+@click.argument('numberofchallenges', default=15)
+@click.argument('location', default='San-Francisco')
+def create_comp(name, numberofchallenges, location):
+    new_competition = create_competition(name, numberofchallenges, location)
+    try:
+        db.session.add(new_competition)
+        db.session.commit()
+    except IntegrityError as e:
+        db.session.rollback()
+        print(e.orig)
+        print("No funding for Competition")
+    else:
+        print(new_competition)
+
+@app.cli.command('add-competition')
+@click.argument('username', default="bob")
+@click.argument('name',default='Software-Comp')
+@click.argument('numberofchallenges', default=15)
+@click.argument('location', default='San-Francisco')
+def add_comp(username, name, numberofchallenges, location):
+    participant = get_participant_by_name(username)
+    if not participant:
+        print(f'{username} not found')
+        return
+    new_comp = create_competition(name, numberofchallenges, location)
+    participant.competitions.append(new_comp)
+    db.session.add(participant)
+    db.session.commit()
+    print('Competition added')
+
+@app.cli.command('get-competitions')
+def list_competitions():
+    comps = []
+    allComps = get_all_competitions()
+    for comp in allComps:
+        comps.append([comp.name, comp.numberOfChallenges, comp.location])
+    print(tabulate(comps, headers=["Name", "Number Of Challenges", "Location"]))
+
+@app.cli.command('get-competition-results')
+@click.argument('competition_id', default= 1)
+def list_competition_results(competition_id):
+    results = []
+    compResults = get_results_by_competition(competition_id)
+    for result in compResults:
+        results.append([result.rank, result.participant_id, result.challengesPassed, result.score, result.timeInMin, result.timeInSecs ])
+    competition = get_competition(competition_id)
+    print(f'Results for {competition.name} : ')
+    print(tabulate(results, headers=["Rank", "Participant Id", "Challenges Passed", "Score", "Time In Minuites", "Time In Seconds"]))
+
+@app.cli.command('get-results')
+def list_results():
+    results = []
+    compResults = get_all_results()
+    for result in compResults:
+        results.append([result.rank, result.participant_id, result.challengesPassed, result.score, result.timeInMin, result.timeInSecs, result.competition_id ])
+    print(tabulate(results, headers=["Rank", "Participant Id", "Challenges Passed", "Score", "Time In Minuites", "Time In Seconds", "Competition Id"]))
+
 
 '''
 User Commands
