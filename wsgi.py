@@ -67,6 +67,7 @@ def create_comp(name, numberofchallenges, location):
     else:
         print(new_competition)
 
+#added to participant
 @app.cli.command('add-competition')
 @click.argument('username', default="bob")
 @click.argument('name',default='Software-Comp')
@@ -135,6 +136,78 @@ def list_results():
 '''
 User Commands
 '''
+#move all functions to groups
+participant_cli = AppGroup('participant', help='Participant object commands')
+
+@participant_cli.command("create", help="Creates a participant")
+@click.argument('firstname',default='jack')
+@click.argument('lastname',default='greg')
+@click.argument('username',default='jeg')
+@click.argument('level',default='Beginner')
+def createParticipant(firstname, lastname, username, level):
+    new_participant = create_participant(firstname, lastname, username, level)
+    try:
+        db.session.add(new_participant)
+        db.session.commit()
+    except IntegrityError as e:
+        db.session.rollback()
+        print(e.orig)
+        print("Username already taken!")
+    else:
+        print(new_participant)
+
+@participant_cli.command("list")
+def get_participants():
+    participants = get_all_participants()
+    print(participants)
+
+@participant_cli.command("find")
+@click.argument('username',default='bob')
+def get_participant(username):
+    participant = get_participant_by_name(username)
+    if not participant:
+        print(f'{username} not found')
+        return
+    print(participant)
+
+@participant_cli.command('add')
+@click.argument('username', default="bob")
+@click.argument('name',default='Software-Comp')
+@click.argument('numberofchallenges', default=15)
+@click.argument('location', default='San-Francisco')
+def add_comp(username, name, numberofchallenges, location):
+    participant = get_participant_by_name(username)
+    if not participant:
+        print(f'{username} not found')
+        return
+    new_comp = create_competition(name, numberofchallenges, location)
+    participant.competitions.append(new_comp)
+    db.session.add(participant)
+    db.session.commit()
+    print('Competition added')
+
+@participant_cli.command("my-competitions")
+@click.argument('username', default='bob')
+def get_participant_competitions(username):
+    participant = get_participant_by_name(username)
+    if not participant:
+        print(f'{username} not found')
+        return
+    print(participant.competitions)
+
+app.cli.add_command(participant_cli) # add the group to the cli
+
+
+competition_cli = AppGroup('competition', help='Competition object commands')
+
+
+app.cli.add_command(competition_cli)
+
+
+results_cli = AppGroup('result', help='Results object commands')
+
+
+app.cli.add_command(results_cli)
 
 # Commands can be organized using groups
 
