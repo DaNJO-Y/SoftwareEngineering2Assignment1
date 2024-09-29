@@ -156,7 +156,7 @@ def createParticipant(firstname, lastname, username, level):
     else:
         print(new_participant)
 
-@participant_cli.command("list")
+@participant_cli.command("list", help="List all participants")
 def get_participants():
     participants = get_all_participants()
     print(participants)
@@ -170,7 +170,7 @@ def get_participant(username):
         return
     print(participant)
 
-@participant_cli.command('add')
+@participant_cli.command('add', help="Asociates a compertition with a participant")
 @click.argument('username', default="bob")
 @click.argument('name',default='Software-Comp')
 @click.argument('numberofchallenges', default=15)
@@ -186,7 +186,7 @@ def add_comp(username, name, numberofchallenges, location):
     db.session.commit()
     print('Competition added')
 
-@participant_cli.command("my-competitions")
+@participant_cli.command("my-competitions", help="List a participant's competitions")
 @click.argument('username', default='bob')
 def get_participant_competitions(username):
     participant = get_participant_by_name(username)
@@ -196,6 +196,8 @@ def get_participant_competitions(username):
     print(participant.competitions)
 
 app.cli.add_command(participant_cli) # add the group to the cli
+
+
 
 
 competition_cli = AppGroup('competition', help='Competition object commands')
