@@ -61,6 +61,7 @@ def createParticipant(firstname, lastname, username, level):
         print(e.orig)
         print("Username already taken!")
     else:
+        print("Participant created")
         print(new_participant)
 
 app.cli.add_command(participant_cli) # add the group to the cli
