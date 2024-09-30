@@ -12,11 +12,6 @@ An application for students to showcase their participation in coding competitio
 * View competition results
 
 # Flask Commands
-```python
-#inside wsgi.py
-```
-```bash
-```
 
 To initialize the database the initialize command is utilized.
 ```python
@@ -36,6 +31,8 @@ The flask cli command goes as follows
 ```bash
 $ flask init
 ```
+# Participant Group
+A Participant group was created to group all commands associated with participants. The following section highlights the commands of this group.
 
 To list all comands associated with the participant group:
 ```bash
@@ -163,6 +160,9 @@ The command line goes as follows
 ```bash
 $ flask participant my-competitions Beadle
 ```
+# Command Group
+
+A Competitions group was created to group all commands associated with competitions. The following section highlights the commands of this group.
 
 To list all commands associated with the competitions group:
 ```bash
@@ -243,6 +243,10 @@ The command line goes as follows:
 ```bash
 $ flask competition import results2.csv
 ```
+
+# Results Group
+
+A Results group was created to group all commands associated with results. The following section highlights the commands of this group.
 
 To list all commands associated with the results group:
 ```bash
