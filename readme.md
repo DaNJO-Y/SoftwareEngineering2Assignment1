@@ -52,12 +52,7 @@ def load_config():
 ...
 ```
 
-## In Production
 
-When deploying your application to production/staging you must pass
-in configuration information via environment tab of your render project's dashboard.
-
-![perms](./images/fig1.png)
 
 # Flask Commands
 
