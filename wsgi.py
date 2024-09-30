@@ -40,7 +40,7 @@ def createParticipant(firstname, lastname, username, level):
         print(e.orig)
         print("Username already taken!")
     else:
-        print("Participant ")
+        print("Participant created")
         print(new_participant)
 
 @participant_cli.command("list", help="List all participants")
@@ -100,6 +100,8 @@ def create_comp(name, numberofchallenges, location):
         print("No funding for Competition")
     else:
         print(new_competition)
+
+        
 
 @competition_cli.command("list" , help="List all created competitions in table form")
 def list_competitions():
