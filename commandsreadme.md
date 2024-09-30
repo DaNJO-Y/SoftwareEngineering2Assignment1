@@ -299,6 +299,11 @@ def list_participant_results(participant_id):
 app.cli.add_command(results_cli)
 ```
 
+The command line goes as follows:
+```bash
+$ flask result list-participant-results 2
+```
+
 To list all imported results in table form:
 
 ```python
