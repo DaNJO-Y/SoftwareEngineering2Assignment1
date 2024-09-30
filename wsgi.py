@@ -40,6 +40,7 @@ def createParticipant(firstname, lastname, username, level):
         print(e.orig)
         print("Username already taken!")
     else:
+        print("Participant ")
         print(new_participant)
 
 @participant_cli.command("list", help="List all participants")
