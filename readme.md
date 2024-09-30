@@ -1,4 +1,4 @@
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://github.com/DaNJO-Y/SoftwareEngineering2Assignment1.git)
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://danjoy-softwareengineer-aculn44t6ep.ws-us116.gitpod.io/)
 <a href="https://render.com/deploy?repo=https://github.com/uwidcit/flaskmvc">
   <img src="https://render.com/images/deploy-to-render-button.svg" alt="Deploy to Render">
 </a>
