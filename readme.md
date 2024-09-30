@@ -184,7 +184,7 @@ views = [
 ]
 ```
 
-## Cannot Update Workflow file
+
 
 If you are running into errors in gitpod when updateding your github actions file, ensure your [github permissions](https://gitpod.io/integrations) in gitpod has workflow enabled ![perms](./images/gitperms.png)
 
