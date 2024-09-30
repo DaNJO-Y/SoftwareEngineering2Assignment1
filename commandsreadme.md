@@ -162,7 +162,7 @@ The command line goes as follows
 ```bash
 $ flask participant my-competitions Beadle
 ```
-# Command Group
+# Competition Group
 
 A Competitions group was created to group all commands associated with competitions. The following section highlights the commands of this group.
 
