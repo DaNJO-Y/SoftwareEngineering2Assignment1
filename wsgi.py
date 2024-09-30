@@ -6,7 +6,7 @@ from flask.cli import with_appcontext, AppGroup
 from App.database import db, get_migrate
 from App.models import User, Participant
 from App.main import create_app
-from App.controllers import ( create_user, get_all_users_json, get_all_users, initialize, create_participant, get_all_participants, get_participant_by_name, create_competition, get_competition, get_all_competitions, get_results_by_competition, get_results_by_participant, get_all_results )
+from App.controllers import ( create_user, get_all_users_json, get_all_users, initialize, create_participant, get_all_participants, get_participant_by_name, create_competition, get_competition, get_all_competitions,create_results, get_results_by_competition, get_results_by_participant, get_all_results )
 
 
 # This commands file allow you to create convenient CLI commands for testing controllers
@@ -106,9 +106,19 @@ def list_competitions():
     comps = []
     allComps = get_all_competitions()
     for comp in allComps:
-        comps.append([comp.name, comp.numberOfChallenges, comp.location])
-    print(tabulate(comps, headers=["Name", "Number Of Challenges", "Location"]))
+        comps.append([comp.id, comp.name, comp.numberOfChallenges, comp.location])
+    print(tabulate(comps, headers=["ID", "Name", "Number Of Challenges", "Location"]))
 
+@competition_cli.command("import", help="import results from a csv file for a competition")
+@click.argument('name')
+def import_file(name):
+    with open(f'{name}') as file:
+        reader = csv.DictReader(file) 
+        for row in reader:
+            new_result = create_results(int(row['competition_id']), int(row['participant_id']), int(row['challengesPassed']), int(row['score']), int(row['timeInMin']), int(row['timeInSecs']), int(row['rank'])) 
+            db.session.add(new_result)
+        db.session.commit()
+        print('results imported')
 
 app.cli.add_command(competition_cli)
 
@@ -117,10 +127,13 @@ results_cli = AppGroup('result', help='Results object commands')
 @click.argument('competition_id', default= 1)
 def list_competition_results(competition_id):
     results = []
+    competition = get_competition(competition_id)
+    if not competition:
+        print(f'There is no Competition with id: {competition_id}')
+        return
     compResults = get_results_by_competition(competition_id)
     for result in compResults:
         results.append([result.rank, result.participant_id, result.challengesPassed, result.score, result.timeInMin, result.timeInSecs ])
-    competition = get_competition(competition_id)
     print(f'Results for {competition.name} : ')
     print(tabulate(results, headers=["Rank", "Participant Id", "Challenges Passed", "Score", "Time In Minuites", "Time In Seconds"]))
 
