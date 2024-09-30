@@ -1,5 +1,6 @@
 # Project Description
 Competitions Platform
+
 An application for students to showcase their participation in coding competitions.
 
 
