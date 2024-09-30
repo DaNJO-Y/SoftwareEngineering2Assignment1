@@ -83,7 +83,6 @@ def get_participant_competitions(username):
 
 app.cli.add_command(participant_cli) # add the group to the cli
 
-
 competition_cli = AppGroup('competition', help='Competition object commands')
 @competition_cli.command("create", help="Create a competition")
 @click.argument('name',default='Software-Comp')
