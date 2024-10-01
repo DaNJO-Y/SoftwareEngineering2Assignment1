@@ -18,171 +18,333 @@ A template for flask applications structured in the Model View Controller patter
 $ pip install -r requirements.txt
 ```
 
-# Configuration Management
+# Project Description
+Competitions Platform
+
+An application for students to showcase their participation in coding competitions.
 
 
-Configuration information such as the database url/port, credentials, API keys etc are to be supplied to the application. However, it is bad practice to stage production information in publicly visible repositories.
-Instead, all config is provided by a config file or via [environment variables](https://linuxize.com/post/how-to-set-and-list-environment-variables-in-linux/).
+* Create Competition
 
-## In Development
+* Import competition results from file
 
-When running the project in a development environment (such as gitpod) the app is configured via default_config.py file in the App folder. By default, the config for development uses a sqlite database.
+* View competitions list
 
-default_config.py
-```python
-SQLALCHEMY_DATABASE_URI = "sqlite:///temp-database.db"
-SECRET_KEY = "secret key"
-JWT_ACCESS_TOKEN_EXPIRES = 7
-ENV = "DEVELOPMENT"
-```
-
-These values would be imported and added to the app in load_config() function in config.py
-
-config.py
-```python
-# must be updated to inlude addtional secrets/ api keys & use a gitignored custom-config file instad
-def load_config():
-    config = {'ENV': os.environ.get('ENV', 'DEVELOPMENT')}
-    delta = 7
-    if config['ENV'] == "DEVELOPMENT":
-        from .default_config import JWT_ACCESS_TOKEN_EXPIRES, SQLALCHEMY_DATABASE_URI, SECRET_KEY
-        config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
-        config['SECRET_KEY'] = SECRET_KEY
-        delta = JWT_ACCESS_TOKEN_EXPIRES
-...
-```
-
-
+* View competition results
 
 # Flask Commands
 
-wsgi.py is a utility script for performing various tasks related to the project. You can use it to import and test any code in the project. 
-You just need create a manager command function, for example:
-
+To initialize the database the initialize command is utilized.
 ```python
-# inside wsgi.py
+#inside wsgi.py
 
-user_cli = AppGroup('user', help='User object commands')
+app = create_app()
+migrate = get_migrate(app)
 
-@user_cli.cli.command("create-user")
-@click.argument("username")
-@click.argument("password")
-def create_user_command(username, password):
-    create_user(username, password)
-    print(f'{username} created!')
-
-app.cli.add_command(user_cli) # add the group to the cli
-
+# This command creates and initializes the database
+@app.cli.command("init", help="Creates and initializes the database")
+def init():
+    initialize()
+    print('database intialized')
 ```
-
-Then execute the command invoking with flask cli with command name and the relevant parameters
-
-```bash
-$ flask user create bob bobpass
-```
-
-
-# Running the Project
-
-_For development run the serve command (what you execute):_
-```bash
-$ flask run
-```
-
-_For production using gunicorn (what the production server executes):_
-```bash
-$ gunicorn wsgi:app
-```
-
-# Deploying
-You can deploy your version of this app to render by clicking on the "Deploy to Render" link above.
-
-# Initializing the Database
-When connecting the project to a fresh empty database ensure the appropriate configuration is set then file then run the following command. This must also be executed once when running the app on heroku by opening the heroku console, executing bash and running the command in the dyno.
+The flask cli command goes as follows
 
 ```bash
 $ flask init
 ```
+# Participant Group
+A Participant group was created to group all commands associated with participants. The following section highlights the commands of this group.
 
-# Database Migrations
-If changes to the models are made, the database must be'migrated' so that it can be synced with the new models.
-Then execute following commands using manage.py. More info [here](https://flask-migrate.readthedocs.io/en/latest/)
-
+To list all comands associated with the participant group:
 ```bash
-$ flask db init
-$ flask db migrate
-$ flask db upgrade
-$ flask db --help
+$ flask participant --help
 ```
 
-# Testing
-
-## Unit & Integration
-Unit and Integration tests are created in the App/test. You can then create commands to run them. Look at the unit test command in wsgi.py for example
-
+To create a paricipant:
 ```python
-@test.command("user", help="Run User tests")
-@click.argument("type", default="all")
-def user_tests_command(type):
-    if type == "unit":
-        sys.exit(pytest.main(["-k", "UserUnitTests"]))
-    elif type == "int":
-        sys.exit(pytest.main(["-k", "UserIntegrationTests"]))
+#inside wsgi.py
+
+participant_cli = AppGroup('participant', help='Participant object commands')
+
+@participant_cli.command("create", help="Creates a participant")
+@click.argument('firstname',default='jack')
+@click.argument('lastname',default='greg')
+@click.argument('username',default='jeg')
+@click.argument('level',default='Beginner')
+def createParticipant(firstname, lastname, username, level):
+    new_participant = create_participant(firstname, lastname, username, level)
+    try:
+        db.session.add(new_participant)
+        db.session.commit()
+    except IntegrityError as e:
+        db.session.rollback()
+        print(e.orig)
+        print("Username already taken!")
     else:
-        sys.exit(pytest.main(["-k", "User"]))
+        print("Participant created")
+        print(new_participant)
+
+app.cli.add_command(participant_cli) # add the group to the cli
+
 ```
 
-You can then execute all user tests as follows
-
+The flask cli command goes as follows 
 ```bash
-$ flask test user
+$  flask participant create Nora Beady Beadle Advanced
 ```
 
-You can also supply "unit" or "int" at the end of the comand to execute only unit or integration tests.
+To list all participants
+```python
+#inside wsgi.py
 
-You can run all application tests with the following command
+participant_cli = AppGroup('participant', help='Participant object commands')
 
+@participant_cli.command("list", help="List all participants")
+def get_participants():
+    participants = get_all_participants()
+    print(participants)
+app.cli.add_command(participant_cli) # add the group to the cli
+```
+The command line goes as follows
 ```bash
-$ pytest
+$ flask participant list
 ```
 
-## Test Coverage
+To find a participant by their username:
+```python
+#inside wsgi.py
 
-You can generate a report on your test coverage via the following command
+participant_cli = AppGroup('participant', help='Participant object commands')
 
+@participant_cli.command("find")
+@click.argument('username',default='bob')
+def get_participant(username):
+    participant = get_participant_by_name(username)
+    if not participant:
+        print(f'{username} not found')
+        return
+    print(participant)
+
+app.cli.add_command(participant_cli) # add the group to the cli
+```
+The command line goes as follows
 ```bash
-$ coverage report
+$ flask participant find Beadle
 ```
 
-You can also generate a detailed html report in a directory named htmlcov with the following comand
+To add a competition to a participant's competitions: 
+```python
+#inside wsgi.py
 
+participant_cli = AppGroup('participant', help='Participant object commands')
+
+@participant_cli.command('add', help="Associates a created competition with a participant")
+@click.argument('username', default="bob")
+@click.argument('name',default='Software-Comp')
+@click.argument('numberofchallenges', default=15)
+@click.argument('location', default='San-Francisco')
+def add_comp(username, name, numberofchallenges, location):
+    participant = get_participant_by_name(username)
+    if not participant:
+        print(f'{username} not found')
+        return
+    new_comp = create_competition(name, numberofchallenges, location)
+    participant.competitions.append(new_comp)
+    db.session.add(participant)
+    db.session.commit()
+    print('Competition added')
+
+app.cli.add_command(participant_cli) # add the group to the cli
+```
+The command line goes as follows
 ```bash
-$ coverage html
+$ flask participant add Beadle Soft-Wear 15 London
 ```
 
-# Troubleshooting
+To list a participant's competitions by username: 
+```python
+#inside wsgi.py
 
-## Views 404ing
+participant_cli = AppGroup('participant', help='Participant object commands')
 
-If your newly created views are returning 404 ensure that they are added to the list in main.py.
+@participant_cli.command("my-competitions", help="List a participant's competitions")
+@click.argument('username', default='bob')
+def get_participant_competitions(username):
+    participant = get_participant_by_name(username)
+    if not participant:
+        print(f'{username} not found')
+        return
+    print(participant.competitions)
+
+app.cli.add_command(participant_cli) # add the group to the cli
+```
+The command line goes as follows
+```bash
+$ flask participant my-competitions Beadle
+```
+# Competition Group
+
+A Competitions group was created to group all commands associated with competitions. The following section highlights the commands of this group.
+
+To list all commands associated with the competitions group:
+```bash
+$ flask competition --help
+```
+
+To create a competition:
+```python
+
+competition_cli = AppGroup('competition', help='Competition object commands')
+
+@competition_cli.command("create", help="Create a competition")
+@click.argument('name',default='Software-Comp')
+@click.argument('numberofchallenges', default=15)
+@click.argument('location', default='San-Francisco')
+def create_comp(name, numberofchallenges, location):
+    new_competition = create_competition(name, numberofchallenges, location)
+    try:
+        db.session.add(new_competition)
+        db.session.commit()
+    except IntegrityError as e:
+        db.session.rollback()
+        print(e.orig)
+        print("No funding for Competition")
+    else:
+        print(new_competition)
+
+app.cli.add_command(competition_cli)
+```
+
+The command line goes as follows:
+```bash
+$ flask competition create Software-OverLoad 15 Toco,France
+```
+
+To list all competitions in table form:
+```python
+competition_cli = AppGroup('competition', help='Competition object commands')
+
+@competition_cli.command("list" , help="List all created competitions in table form")
+def list_competitions():
+    comps = []
+    allComps = get_all_competitions()
+    for comp in allComps:
+        comps.append([comp.id, comp.name, comp.numberOfChallenges, comp.location])
+    print(tabulate(comps, headers=["ID", "Name", "Number Of Challenges", "Location"]))
+
+app.cli.add_command(competition_cli)
+
+```
+
+The command line goes as follows:
+```bash
+$ flask competition list
+```
+
+To import results from a csv file for a competition:
+```python
+competition_cli = AppGroup('competition', help='Competition object commands')
+
+@competition_cli.command("import", help="import results from a csv file for a competition")
+@click.argument('name')
+def import_file(name):
+    with open(f'{name}') as file:
+        reader = csv.DictReader(file) 
+        for row in reader:
+            new_result = create_results(int(row['competition_id']), int(row['participant_id']), int(row['challengesPassed']), int(row['score']), int(row['timeInMin']), int(row['timeInSecs']), int(row['rank'])) 
+            db.session.add(new_result)
+        db.session.commit()
+        print('results imported')
+
+
+app.cli.add_command(competition_cli)
+
+```
+
+The command line goes as follows:
+```bash
+$ flask competition import results2.csv
+```
+
+# Results Group
+
+A Results group was created to group all commands associated with results. The following section highlights the commands of this group.
+
+To list all commands associated with the results group:
+```bash
+$ flask result --help
+```
+
+To list the results for a given competition in table form:
 
 ```python
-from App.views import (
-    user_views,
-    index_views
-)
+results_cli = AppGroup('result', help='Results object commands')
 
-# New views must be imported and added to this list
-views = [
-    user_views,
-    index_views
-]
+@results_cli.command("list-comp-results", help="list results by competition")
+@click.argument('competition_id', default= 1)
+def list_competition_results(competition_id):
+    results = []
+    competition = get_competition(competition_id)
+    if not competition:
+        print(f'There is no Competition with id: {competition_id}')
+        return
+    compResults = get_results_by_competition(competition_id)
+    for result in compResults:
+        results.append([result.rank, result.participant_id, result.challengesPassed, result.score, result.timeInMin, result.timeInSecs ])
+    print(f'Results for {competition.name} : ')
+    print(tabulate(results, headers=["Rank", "Participant Id", "Challenges Passed", "Score", "Time In Minuites", "Time In Seconds"]))
+
+app.cli.add_command(results_cli)
+```
+
+The command line goes a follows:
+```bash
+$ flask result list-comp-results 2
+```
+
+To list all results of a given participant in table form:
+
+```python
+results_cli = AppGroup('result', help='Results object commands')
+
+@results_cli.command("list-participant-results", help="list results by participants")
+@click.argument('participant_id', default=1)
+def list_participant_results(participant_id):
+    results = []
+    participantRes = get_results_by_participant(participant_id)
+    for result in participantRes:
+        results.append([result.rank, result.competition_id, result.challengesPassed, result.score, result.timeInMin, result.timeInSecs ])
+    print(f'Results for  Participant {participant_id} : ')
+    print(tabulate(results, headers=["Rank", "Competition Id", "Challenges Passed", "Score", "Time In Minuites", "Time In Seconds"]))
+    
+app.cli.add_command(results_cli)
+```
+
+The command line goes as follows:
+```bash
+$ flask result list-participant-results 2
+```
+
+To list all imported results in table form:
+
+```python
+results_cli = AppGroup('result', help='Results object commands')
+
+@results_cli.command("list", help="list every result for every competition")
+def list_results():
+    results = []
+    compResults = get_all_results()
+    for result in compResults:
+        results.append([result.rank, result.participant_id, result.challengesPassed, result.score, result.timeInMin, result.timeInSecs, result.competition_id ])
+    print(tabulate(results, headers=["Rank", "Participant Id", "Challenges Passed", "Score", "Time In Minuites", "Time In Seconds", "Competition Id"]))
+    
+app.cli.add_command(results_cli)
+```
+
+The command line goes a follows:
+```bash
+$ flask result list
 ```
 
 
 
-If you are running into errors in gitpod when updateding your github actions file, ensure your [github permissions](https://gitpod.io/integrations) in gitpod has workflow enabled ![perms](./images/gitperms.png)
-
-## Database Issues
-
-If you are adding models you may need to migrate the database with the commands given in the previous database migration section. Alternateively you can delete you database file.
