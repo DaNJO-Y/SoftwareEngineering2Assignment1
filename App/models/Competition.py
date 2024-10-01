@@ -3,7 +3,7 @@ from App.database import db
 class Competition(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     participant_id = db.Column(db.Integer, db.ForeignKey('participant.id'),nullable=True)
-    name = db.Column(db.String(50), nullable=False)
+    name = db.Column(db.String(50), nullable=False, unique=True)
     numberOfChallenges = db.Column(db.Integer, nullable=False)
     location = db.Column(db.String(100), nullable=False)
     
