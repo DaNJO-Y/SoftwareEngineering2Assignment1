@@ -23,8 +23,10 @@ def init():
 '''
 User Commands
 '''
-#move all functions to groups
+
 participant_cli = AppGroup('participant', help='Participant object commands')
+
+# This function creates a participant
 @participant_cli.command("create", help="Creates a participant")
 @click.argument('firstname',default='jack')
 @click.argument('lastname',default='greg')
@@ -40,14 +42,16 @@ def createParticipant(firstname, lastname, username, level):
         print(e.orig)
         print("Username already taken!")
     else:
-        print("Participant ")
+        print("Participant created")
         print(new_participant)
 
+# This function lists all participants that are created
 @participant_cli.command("list", help="List all participants")
 def get_participants():
     participants = get_all_participants()
     print(participants)
 
+# This function finds and retrieves a participant based on a username passed as an argument
 @participant_cli.command("find")
 @click.argument('username',default='bob')
 def get_participant(username):
@@ -57,6 +61,7 @@ def get_participant(username):
         return
     print(participant)
 
+# This function creates a competition and adds it to the participant's list of competitions
 @participant_cli.command('add', help="Associates a created competition with a participant")
 @click.argument('username', default="bob")
 @click.argument('name',default='Software-Comp')
@@ -73,6 +78,7 @@ def add_comp(username, name, numberofchallenges, location):
     db.session.commit()
     print('Competition added')
 
+# This function retrieves and lists all the competitions present in a participant's list of competitions
 @participant_cli.command("my-competitions", help="List a participant's competitions")
 @click.argument('username', default='bob')
 def get_participant_competitions(username):
@@ -85,6 +91,8 @@ def get_participant_competitions(username):
 app.cli.add_command(participant_cli) # add the group to the cli
 
 competition_cli = AppGroup('competition', help='Competition object commands')
+
+# This function creates a competition
 @competition_cli.command("create", help="Create a competition")
 @click.argument('name',default='Software-Comp')
 @click.argument('numberofchallenges', default=15)
@@ -101,6 +109,8 @@ def create_comp(name, numberofchallenges, location):
     else:
         print(new_competition)
 
+        
+# This function retrtieves and lists all create competitions in table form
 @competition_cli.command("list" , help="List all created competitions in table form")
 def list_competitions():
     comps = []
@@ -109,6 +119,7 @@ def list_competitions():
         comps.append([comp.id, comp.name, comp.numberOfChallenges, comp.location])
     print(tabulate(comps, headers=["ID", "Name", "Number Of Challenges", "Location"]))
 
+# This function imports a csv file containing results for a specific competition
 @competition_cli.command("import", help="import results from a csv file for a competition")
 @click.argument('name')
 def import_file(name):
@@ -123,6 +134,8 @@ def import_file(name):
 app.cli.add_command(competition_cli)
 
 results_cli = AppGroup('result', help='Results object commands')
+
+# This function retrieves and list all results for a given competition
 @results_cli.command("list-comp-results", help="list results by competition")
 @click.argument('competition_id', default= 1)
 def list_competition_results(competition_id):
@@ -137,6 +150,7 @@ def list_competition_results(competition_id):
     print(f'Results for {competition.name} : ')
     print(tabulate(results, headers=["Rank", "Participant Id", "Challenges Passed", "Score", "Time In Minuites", "Time In Seconds"]))
 
+# This function retrieves and lists all results for a given participant over all competitions
 @results_cli.command("list-participant-results", help="list results by participants")
 @click.argument('participant_id', default=1)
 def list_participant_results(participant_id):
@@ -147,7 +161,7 @@ def list_participant_results(participant_id):
     print(f'Results for  Participant {participant_id} : ')
     print(tabulate(results, headers=["Rank", "Competition Id", "Challenges Passed", "Score", "Time In Minuites", "Time In Seconds"]))
     
-
+# This function retrieves and lists all results
 @results_cli.command("list", help="list every result for every competition")
 def list_results():
     results = []
